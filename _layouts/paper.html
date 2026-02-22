@@ -46,6 +46,7 @@ layout: default
 <hr>
 
 <div class="paper-actions">
+  <button class="btn-edit" data-filename="{{ page.name }}">Edit Tags & Category</button>
   <button class="btn-delete" data-filename="{{ page.name }}">Delete Paper</button>
 </div>
 
@@ -62,7 +63,81 @@ layout: default
   </div>
 </div>
 
+<div id="edit-modal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Tags & Category</h3>
+    <div class="form-group">
+      <label>Category</label>
+      <input type="text" id="edit-category" value="{{ page.category }}">
+    </div>
+    <div class="form-group">
+      <label>Tags (comma separated)</label>
+      <input type="text" id="edit-tags" value="{% if page.tags %}{{ page.tags | join: ', ' }}{% endif %}">
+    </div>
+    <div class="modal-actions">
+      <button id="save-edit" class="btn-primary">Save</button>
+      <button id="cancel-edit" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="message-modal" class="modal">
+  <div class="modal-content">
+    <h3 id="message-title">Message</h3>
+    <p id="message-text"></p>
+    <div class="modal-actions">
+      <button id="close-message" class="btn-primary">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
+document.querySelector('.btn-edit').addEventListener('click', function() {
+  document.getElementById('edit-modal').style.display = 'flex';
+});
+
+document.getElementById('cancel-edit').addEventListener('click', function() {
+  document.getElementById('edit-modal').style.display = 'none';
+});
+
+function showMessage(title, text, isError = true) {
+  document.getElementById('message-title').textContent = title;
+  document.getElementById('message-text').textContent = text;
+  document.getElementById('message-modal').style.display = 'flex';
+}
+
+document.getElementById('close-message').addEventListener('click', function() {
+  document.getElementById('message-modal').style.display = 'none';
+});
+
+document.getElementById('save-edit').addEventListener('click', async function() {
+  const filename = document.querySelector('.btn-edit').dataset.filename;
+  const category = document.getElementById('edit-category').value.trim();
+  const tags = document.getElementById('edit-tags').value;
+  
+  try {
+    const response = await fetch('http://localhost:4567/update-paper', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        filename: filename,
+        category: category,
+        tags: tags
+      })
+    });
+    const data = await response.json();
+    
+    if (data.success) {
+      document.getElementById('edit-modal').style.display = 'none';
+      window.location.reload();
+    } else {
+      showMessage('Error', data.error);
+    }
+  } catch (error) {
+    showMessage('Error', 'Error updating paper: ' + error.message);
+  }
+});
+
 document.querySelector('.btn-delete').addEventListener('click', function() {
   document.getElementById('delete-modal').style.display = 'flex';
 });
@@ -86,10 +161,10 @@ document.getElementById('confirm-delete').addEventListener('click', async functi
       document.getElementById('delete-modal').style.display = 'none';
       window.location.href = '{{ "/" | relative_url }}';
     } else {
-      alert('Error: ' + data.error);
+      showMessage('Error', data.error);
     }
   } catch (error) {
-    alert('Error deleting paper: ' + error.message);
+    showMessage('Error', 'Error deleting paper: ' + error.message);
   }
 });
 </script>
