@@ -12,6 +12,10 @@
     <div class="nav-brand">
       <a href="{{ '/' | relative_url }}">Research <img src="{{ '/assets/arxiv-logo.svg' | relative_url }}" alt="X" class="nav-logo"> Rack</a>
     </div>
+    <div class="nav-menu">
+      <a href="{{ '/' | relative_url }}" class="{% if page.url == '/' or page.url contains '/papers' %}active{% endif %}">Papers</a>
+      <a href="{{ '/roadmaps' | relative_url }}" class="{% if page.url contains '/roadmaps' %}active{% endif %}">Roadmaps</a>
+    </div>
   </nav>
 
   <main class="container main-content">

@@ -1,0 +1,116 @@
+---
+layout: default
+---
+<div class="roadmaps-page">
+  <div class="roadmaps-page-header">
+    <h1 class="roadmaps-page-title">Roadmaps</h1>
+  </div>
+
+  <div class="roadmaps-grid">
+    {% for roadmap in site.roadmaps %}
+    <a href="{{ roadmap.url | relative_url }}" class="roadmap-card">
+  <span class="roadmap-card-title">{{ roadmap.title }}</span>
+</a>
+    {% endfor %}
+  </div>
+
+  {% if site.roadmaps.size == 0 %}
+  <div class="roadmaps-empty">
+    <p>No roadmaps yet</p>
+  </div>
+  {% endif %}
+
+  <button class="fab-add" id="add-roadmap-btn">+</button>
+</div>
+
+<div id="add-roadmap-modal" class="modal">
+  <div class="modal-content">
+    <h3>Create Roadmap</h3>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="roadmap-title" placeholder="e.g., Frontend Developer">
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <input type="text" id="roadmap-description" placeholder="Brief description">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="roadmap-category">
+        <option value="development">Development</option>
+        <option value="design">Design</option>
+        <option value="data">Data</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button id="save-roadmap" class="btn-primary">Create</button>
+      <button id="cancel-roadmap" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="message-modal" class="modal">
+  <div class="modal-content">
+    <h3 id="message-title">Message</h3>
+    <p id="message-text"></p>
+    <div class="modal-actions">
+      <button id="close-message" class="btn-primary">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showMessage(title, text) {
+  document.getElementById('message-title').textContent = title;
+  document.getElementById('message-text').textContent = text;
+  document.getElementById('message-modal').style.display = 'flex';
+}
+
+document.getElementById('close-message').addEventListener('click', function() {
+  document.getElementById('message-modal').style.display = 'none';
+});
+
+document.getElementById('add-roadmap-btn').addEventListener('click', function() {
+  document.getElementById('add-roadmap-modal').style.display = 'flex';
+});
+
+document.getElementById('cancel-roadmap').addEventListener('click', function() {
+  document.getElementById('add-roadmap-modal').style.display = 'none';
+});
+
+document.getElementById('save-roadmap').addEventListener('click', async function() {
+  const title = document.getElementById('roadmap-title').value.trim();
+  const description = document.getElementById('roadmap-description').value.trim();
+  const category = document.getElementById('roadmap-category').value;
+  
+  if (!title) {
+    showMessage('Error', 'Please enter a title');
+    return;
+  }
+  
+  const filename = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  
+  try {
+    const response = await fetch('http://localhost:4567/add-roadmap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, title, description, category })
+    });
+    const data = await response.json();
+    
+    if (data.success) {
+      document.getElementById('add-roadmap-modal').style.display = 'none';
+      window.location.reload();
+    } else {
+      showMessage('Error', data.error);
+    }
+  } catch (error) {
+    showMessage('Error', 'Failed to create roadmap');
+  }
+});
+
+if (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+  document.getElementById('add-roadmap-btn').style.display = 'none';
+}
+</script>

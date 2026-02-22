@@ -1,0 +1,751 @@
+---
+layout: default
+---
+<div class="roadmap-page">
+  <div class="roadmap-header">
+    <div class="roadmap-header-content">
+      <div class="roadmap-breadcrumb">
+        <a href="{{ '/roadmaps' | relative_url }}">← All Roadmaps</a>
+      </div>
+      <h1 class="roadmap-main-title">{{ page.title }}</h1>
+      {% if page.description %}
+      <p class="roadmap-main-desc">{{ page.description }}</p>
+      {% endif %}
+      <div class="roadmap-meta-info">
+        <span class="roadmap-topic-count">{{ page.nodes | size }} topics</span>
+        <button class="btn-add-node" id="add-node-btn">+ Add Node</button>
+        <button class="btn-delete-roadmap" id="delete-roadmap-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="roadmap-visual" id="roadmap-visual">
+    <div class="roadmap-nodes" id="roadmap-nodes"></div>
+    <svg class="roadmap-lines" id="roadmap-lines"></svg>
+  </div>
+
+  <div class="empty-state-roadmap" id="empty-state">
+    <p>No nodes yet. Click "Add Node" to start building your roadmap.</p>
+  </div>
+</div>
+
+<div class="node-panel" id="node-panel">
+  <div class="node-panel-header">
+    <h3 id="panel-title">Node</h3>
+    <button class="panel-close" id="panel-close">×</button>
+  </div>
+  <div class="node-panel-body">
+    <div class="panel-field">
+      <label>Title</label>
+      <input type="text" id="panel-node-title" placeholder="Node title">
+    </div>
+    
+    <div class="panel-field">
+      <label>Parents</label>
+      <div id="panel-parents" class="panel-parents"></div>
+      <button class="btn-link" id="add-parent-btn">+ Add parent</button>
+    </div>
+    
+    <div class="panel-field">
+      <label>Resources</label>
+      <div id="panel-resources" class="panel-resources"></div>
+      <button class="btn-link" id="add-resource-btn">+ Add resource</button>
+    </div>
+    
+    <div class="panel-field">
+      <label>Notes</label>
+      <textarea id="panel-notes" rows="3" placeholder="Your notes..."></textarea>
+    </div>
+    
+    <div class="panel-buttons">
+      <button class="btn-save" id="save-node-btn">Save</button>
+      <button class="btn-remove" id="delete-node-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="add-node-modal" class="modal">
+  <div class="modal-content">
+    <h3>Add Node</h3>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="new-node-label" placeholder="e.g., JavaScript">
+    </div>
+    <div class="modal-actions">
+      <button id="create-node-btn" class="btn-primary">Add</button>
+      <button id="cancel-add-node" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="add-parent-modal" class="modal">
+  <div class="modal-content">
+    <h3>Add Parent</h3>
+    <div class="form-group">
+      <select id="parent-node-select"></select>
+    </div>
+    <div class="modal-actions">
+      <button id="confirm-add-parent" class="btn-primary">Add</button>
+      <button id="cancel-add-parent" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="add-resource-modal" class="modal">
+  <div class="modal-content">
+    <h3>Add Resource</h3>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="resource-title" placeholder="Title">
+    </div>
+    <div class="form-group">
+      <label>URL</label>
+      <input type="text" id="resource-url" placeholder="https://">
+    </div>
+    <div class="form-group">
+      <label>Type</label>
+      <select id="resource-type">
+        <option value="docs">Documentation</option>
+        <option value="course">Course</option>
+        <option value="video">Video</option>
+        <option value="article">Article</option>
+        <option value="practice">Practice</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button id="save-resource-btn" class="btn-primary">Add</button>
+      <button id="cancel-resource" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirm-modal" class="modal">
+  <div class="modal-content">
+    <h3 id="confirm-title">Confirm</h3>
+    <p id="confirm-message"></p>
+    <div class="modal-actions">
+      <button id="confirm-yes" class="btn-danger">Yes</button>
+      <button id="confirm-no" class="btn-cancel">No</button>
+    </div>
+  </div>
+</div>
+
+<div id="message-modal" class="modal">
+  <div class="modal-content">
+    <h3 id="message-title">Message</h3>
+    <p id="message-text"></p>
+    <div class="modal-actions">
+      <button id="close-message" class="btn-primary">OK</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.roadmap-page {
+  padding-bottom: 60px;
+}
+
+.roadmap-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 40px 0;
+  margin: -24px -24px 0;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.roadmap-breadcrumb {
+  margin-bottom: 16px;
+}
+
+.roadmap-breadcrumb a {
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.roadmap-breadcrumb a:hover {
+  color: #fff;
+}
+
+.roadmap-main-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px 0;
+}
+
+.roadmap-main-desc {
+  font-size: 16px;
+  color: rgba(255,255,255,0.7);
+  margin: 0 0 20px 0;
+  max-width: 600px;
+}
+
+.roadmap-meta-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.roadmap-topic-count {
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+}
+
+.btn-add-node, .btn-delete-roadmap {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-add-node {
+  background: #fff;
+  color: #1a1a2e;
+}
+
+.btn-delete-roadmap {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.7);
+}
+
+.roadmap-visual {
+  position: relative;
+  padding: 40px 0;
+  min-height: 400px;
+}
+
+.roadmap-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.roadmap-nodes {
+  position: relative;
+  z-index: 1;
+}
+
+.roadmap-node {
+  display: inline-block;
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.roadmap-node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.roadmap-node-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.roadmap-level {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+
+.empty-state-roadmap {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  display: none;
+}
+
+.node-panel {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+  z-index: 1001;
+  transition: right 0.3s;
+  overflow-y: auto;
+}
+
+.node-panel.open {
+  right: 0;
+}
+
+.node-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  background: #fafafa;
+}
+
+.node-panel-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.panel-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.node-panel-body {
+  padding: 20px;
+}
+
+.panel-field {
+  margin-bottom: 20px;
+}
+
+.panel-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.panel-field input,
+.panel-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.panel-parents, .panel-resources {
+  margin-bottom: 8px;
+}
+
+.panel-parent-item, .panel-resource-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.panel-resource-item a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #0066cc;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.panel-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.btn-save {
+  flex: 1;
+  padding: 12px;
+  background: #1a1a2e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-remove {
+  padding: 12px 20px;
+  background: #fff;
+  color: #cc0000;
+  border: 1px solid #cc0000;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-remove:hover {
+  background: #cc0000;
+  color: #fff;
+}
+</style>
+
+<script>
+const filename = '{{ page.name }}';
+const nodes = {{ page.nodes | jsonify }};
+let currentNode = null;
+let tempResources = [];
+let tempParents = [];
+
+function showMessage(title, text) {
+  document.getElementById('message-title').textContent = title;
+  document.getElementById('message-text').textContent = text;
+  document.getElementById('message-modal').style.display = 'flex';
+}
+
+document.getElementById('close-message').addEventListener('click', () => {
+  document.getElementById('message-modal').style.display = 'none';
+});
+
+function getRoots() {
+  const withParents = new Set();
+  nodes.forEach(n => {
+    if (n.parent) withParents.add(n.parent);
+    if (n.parents) n.parents.forEach(p => withParents.add(p));
+  });
+  return nodes.filter(n => !n.parent && (!n.parents || n.parents.length === 0));
+}
+
+function getChildren(id) {
+  return nodes.filter(n => n.parent === id || (n.parents && n.parents.includes(id)));
+}
+
+function buildLevels() {
+  const levels = [];
+  const done = new Set();
+  
+  function addLevel(nodelist, lvl) {
+    if (!nodelist.length) return;
+    if (!levels[lvl]) levels[lvl] = [];
+    nodelist.forEach(n => {
+      if (!done.has(n.id)) {
+        levels[lvl].push(n);
+        done.add(n.id);
+      }
+    });
+    const next = [];
+    nodelist.forEach(n => {
+      getChildren(n.id).forEach(c => {
+        if (!done.has(c.id)) next.push(c);
+      });
+    });
+    if (next.length) addLevel(next, lvl + 1);
+  }
+  
+  addLevel(getRoots(), 0);
+  return levels;
+}
+
+function render() {
+  const container = document.getElementById('roadmap-nodes');
+  const empty = document.getElementById('empty-state');
+  container.innerHTML = '';
+  
+  if (!nodes.length) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  
+  const levels = buildLevels();
+  levels.forEach(levelNodes => {
+    const row = document.createElement('div');
+    row.className = 'roadmap-level';
+    levelNodes.forEach(node => {
+      const el = document.createElement('div');
+      el.className = 'roadmap-node';
+      el.dataset.id = node.id;
+      el.innerHTML = `<span class="roadmap-node-text">${node.label}</span>`;
+      el.addEventListener('click', () => openPanel(node));
+      row.appendChild(el);
+    });
+    container.appendChild(row);
+  });
+  
+  setTimeout(drawLines, 50);
+}
+
+function drawLines() {
+  const svg = document.getElementById('roadmap-lines');
+  const container = document.getElementById('roadmap-nodes');
+  svg.innerHTML = '';
+  svg.setAttribute('width', container.scrollWidth);
+  svg.setAttribute('height', container.scrollHeight);
+  
+  const rect = container.getBoundingClientRect();
+  
+  nodes.forEach(node => {
+    const parents = node.parents || (node.parent ? [node.parent] : []);
+    parents.forEach(pid => {
+      const pEl = document.querySelector(`.roadmap-node[data-id="${pid}"]`);
+      const cEl = document.querySelector(`.roadmap-node[data-id="${node.id}"]`);
+      if (pEl && cEl) {
+        const pr = pEl.getBoundingClientRect();
+        const cr = cEl.getBoundingClientRect();
+        const x1 = pr.left - rect.left + pr.width / 2;
+        const y1 = pr.top - rect.top + pr.height;
+        const x2 = cr.left - rect.left + cr.width / 2;
+        const y2 = cr.top - rect.top;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const my = (y1 + y2) / 2;
+        path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', '#ccc');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-dasharray', '5,5');
+        svg.appendChild(path);
+      }
+    });
+  });
+}
+
+function openPanel(node) {
+  currentNode = node;
+  tempResources = [...(node.resources || [])];
+  tempParents = [...(node.parents || (node.parent ? [node.parent] : []))];
+  
+  document.getElementById('panel-title').textContent = node.label;
+  document.getElementById('panel-node-title').value = node.label;
+  document.getElementById('panel-notes').value = node.notes || '';
+  
+  renderParents();
+  renderResources();
+  document.getElementById('node-panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('node-panel').classList.remove('open');
+  currentNode = null;
+}
+
+function renderParents() {
+  const el = document.getElementById('panel-parents');
+  el.innerHTML = '';
+  if (!tempParents.length) {
+    el.innerHTML = '<span style="color:#888;font-size:13px;">None</span>';
+    return;
+  }
+  tempParents.forEach(pid => {
+    const p = nodes.find(n => n.id === pid);
+    if (p) {
+      const div = document.createElement('div');
+      div.className = 'panel-parent-item';
+      div.innerHTML = `<span>${p.label}</span><button class="btn-link" onclick="removeParent('${pid}')">×</button>`;
+      el.appendChild(div);
+    }
+  });
+}
+
+window.removeParent = function(pid) {
+  tempParents = tempParents.filter(p => p !== pid);
+  renderParents();
+};
+
+function renderResources() {
+  const el = document.getElementById('panel-resources');
+  el.innerHTML = '';
+  if (!tempResources.length) {
+    el.innerHTML = '<span style="color:#888;font-size:13px;">None</span>';
+    return;
+  }
+  tempResources.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'panel-resource-item';
+    div.innerHTML = `<a href="${r.url}" target="_blank">${r.title}</a><button class="btn-link" onclick="removeResource(${i})">×</button>`;
+    el.appendChild(div);
+  });
+}
+
+window.removeResource = function(i) {
+  tempResources.splice(i, 1);
+  renderResources();
+};
+
+document.getElementById('panel-close').addEventListener('click', closePanel);
+
+document.getElementById('add-parent-btn').addEventListener('click', () => {
+  const sel = document.getElementById('parent-node-select');
+  sel.innerHTML = '';
+  nodes.forEach(n => {
+    if (currentNode && n.id !== currentNode.id && !tempParents.includes(n.id)) {
+      sel.innerHTML += `<option value="${n.id}">${n.label}</option>`;
+    }
+  });
+  document.getElementById('add-parent-modal').style.display = 'flex';
+});
+
+document.getElementById('cancel-add-parent').addEventListener('click', () => {
+  document.getElementById('add-parent-modal').style.display = 'none';
+});
+
+document.getElementById('confirm-add-parent').addEventListener('click', () => {
+  const pid = document.getElementById('parent-node-select').value;
+  if (pid && !tempParents.includes(pid)) {
+    tempParents.push(pid);
+    renderParents();
+  }
+  document.getElementById('add-parent-modal').style.display = 'none';
+});
+
+document.getElementById('add-resource-btn').addEventListener('click', () => {
+  document.getElementById('resource-title').value = '';
+  document.getElementById('resource-url').value = '';
+  document.getElementById('resource-type').value = 'docs';
+  document.getElementById('add-resource-modal').style.display = 'flex';
+});
+
+document.getElementById('cancel-resource').addEventListener('click', () => {
+  document.getElementById('add-resource-modal').style.display = 'none';
+});
+
+document.getElementById('save-resource-btn').addEventListener('click', () => {
+  const title = document.getElementById('resource-title').value.trim();
+  const url = document.getElementById('resource-url').value.trim();
+  const type = document.getElementById('resource-type').value;
+  if (!title || !url) {
+    showMessage('Error', 'Fill all fields');
+    return;
+  }
+  tempResources.push({ title, url, type });
+  renderResources();
+  document.getElementById('add-resource-modal').style.display = 'none';
+});
+
+document.getElementById('save-node-btn').addEventListener('click', async () => {
+  if (!currentNode) return;
+  const label = document.getElementById('panel-node-title').value.trim();
+  const notes = document.getElementById('panel-notes').value.trim();
+  if (!label) {
+    showMessage('Error', 'Title required');
+    return;
+  }
+  try {
+    const res = await fetch('http://localhost:4567/update-node', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, node_id: currentNode.id, label, notes, resources: tempResources, parents: tempParents })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closePanel();
+      location.reload();
+    } else {
+      showMessage('Error', data.error);
+    }
+  } catch (e) {
+    showMessage('Error', 'Failed');
+  }
+});
+
+document.getElementById('delete-node-btn').addEventListener('click', () => {
+  if (!currentNode) return;
+  document.getElementById('confirm-title').textContent = 'Delete Node?';
+  document.getElementById('confirm-message').textContent = 'This cannot be undone.';
+  document.getElementById('confirm-modal').style.display = 'flex';
+  document.getElementById('confirm-yes').onclick = async () => {
+    try {
+      const res = await fetch('http://localhost:4567/delete-node', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, node_id: currentNode.id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        closePanel();
+        document.getElementById('confirm-modal').style.display = 'none';
+        location.reload();
+      } else {
+        showMessage('Error', data.error);
+      }
+    } catch (e) {
+      showMessage('Error', 'Failed');
+    }
+  };
+});
+
+document.getElementById('confirm-no').addEventListener('click', () => {
+  document.getElementById('confirm-modal').style.display = 'none';
+});
+
+document.getElementById('add-node-btn').addEventListener('click', () => {
+  document.getElementById('new-node-label').value = '';
+  document.getElementById('add-node-modal').style.display = 'flex';
+});
+
+document.getElementById('cancel-add-node').addEventListener('click', () => {
+  document.getElementById('add-node-modal').style.display = 'none';
+});
+
+document.getElementById('create-node-btn').addEventListener('click', async () => {
+  const label = document.getElementById('new-node-label').value.trim();
+  if (!label) {
+    showMessage('Error', 'Title required');
+    return;
+  }
+  try {
+    const res = await fetch('http://localhost:4567/add-node', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, label })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('add-node-modal').style.display = 'none';
+      location.reload();
+    } else {
+      showMessage('Error', data.error);
+    }
+  } catch (e) {
+    showMessage('Error', 'Failed');
+  }
+});
+
+document.getElementById('delete-roadmap-btn').addEventListener('click', () => {
+  document.getElementById('confirm-title').textContent = 'Delete Roadmap?';
+  document.getElementById('confirm-message').textContent = 'This will delete all nodes.';
+  document.getElementById('confirm-modal').style.display = 'flex';
+  document.getElementById('confirm-yes').onclick = async () => {
+    try {
+      const res = await fetch('http://localhost:4567/delete-roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename })
+      });
+      const data = await res.json();
+      if (data.success) {
+        location.href = '{{ "/roadmaps" | relative_url }}';
+      } else {
+        showMessage('Error', data.error);
+      }
+    } catch (e) {
+      showMessage('Error', 'Failed');
+    }
+  };
+});
+
+if (!location.hostname.includes('localhost') && !location.hostname.includes('127.0.0.1')) {
+  document.getElementById('add-node-btn').style.display = 'none';
+  document.getElementById('delete-roadmap-btn').style.display = 'none';
+}
+
+window.addEventListener('resize', drawLines);
+render();
+</script>

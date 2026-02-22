@@ -7,6 +7,9 @@ collections:
   papers:
     output: true
     permalink: /papers/:slug
+  roadmaps:
+    output: true
+    permalink: /roadmaps/:slug
 
 defaults:
   - scope:
@@ -14,6 +17,11 @@ defaults:
       type: "papers"
     values:
       layout: "paper"
+  - scope:
+      path: ""
+      type: "roadmaps"
+    values:
+      layout: "roadmap"
 
 exclude:
   - Gemfile
