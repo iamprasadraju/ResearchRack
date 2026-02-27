@@ -222,6 +222,8 @@ document.getElementById('search-btn').addEventListener('click', async function()
                 description = typeof workData.description === 'string' 
                   ? workData.description 
                   : workData.description.value || '';
+                description = description.replace(/^"+|"+$/, '').replace(/\\"/g, '"').replace(/\n/g, ' ').replace(/--/g, '-').trim();
+                description = description.substring(0, 2000);
               }
             } catch (err) {
               console.log('Could not fetch description');
@@ -298,6 +300,13 @@ document.getElementById('cancel-add').addEventListener('click', function() {
   document.getElementById('book-pdf-file').value = '';
 });
 
+function sanitize(str) {
+  if (!str) return '';
+  str = str.toString();
+  str = str.replace(/^["']+|["']+$/g, '').replace(/\\"/g, '"').replace(/\n/g, ' ').replace(/--+/g, '-').trim();
+  return str.substring(0, 2000);
+}
+
 document.getElementById('confirm-add').addEventListener('click', async function() {
   if (!selectedBook) return;
   
@@ -324,21 +333,21 @@ document.getElementById('confirm-add').addEventListener('click', async function(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: selectedBook.title,
+        title: sanitize(selectedBook.title),
         authors: selectedBook.authors,
-        author: selectedBook.author,
-        year: selectedBook.year,
-        isbn: selectedBook.isbn,
-        isbn13: selectedBook.isbn13,
+        author: sanitize(selectedBook.author),
+        year: sanitize(selectedBook.year),
+        isbn: sanitize(selectedBook.isbn),
+        isbn13: sanitize(selectedBook.isbn13),
         coverUrl: selectedBook.coverUrl,
         olid: selectedBook.olid,
-        publishers: selectedBook.publishers,
-        publisher: selectedBook.publisher,
+        publishers: sanitize(selectedBook.publishers),
+        publisher: sanitize(selectedBook.publisher),
         subjects: selectedBook.subjects,
-        languages: selectedBook.languages,
-        pages: selectedBook.pages,
-        editionCount: selectedBook.editionCount,
-        description: selectedBook.description,
+        languages: sanitize(selectedBook.languages),
+        pages: sanitize(selectedBook.pages),
+        editionCount: sanitize(selectedBook.editionCount),
+        description: sanitize(selectedBook.description),
         pdfUrl: pdfUrl
       })
     });

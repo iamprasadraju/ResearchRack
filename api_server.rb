@@ -299,7 +299,10 @@ class AddBookServlet < WEBrick::HTTPServlet::AbstractServlet
       pages = data['pages'].to_s
       edition_count = data['editionCount'].to_s
       isbn13 = data['isbn13'].to_s
+      
       description = data['description'].to_s
+      description = description.gsub(/^["']+|["']+$/, '').gsub('\\"', '"').gsub("\n", ' ').gsub('--+', '-').strip
+      description = description[0..2000] if description.length > 2000
       
       content = <<~CONTENT
 ---
@@ -369,7 +372,24 @@ class DeleteBookServlet < WEBrick::HTTPServlet::AbstractServlet
         raise "File not found: #{filename}"
       end
       
+      content = File.read(filepath)
+      if content =~ /pdf_url:\s*"([^"]+)"/
+        pdf_path = $1
+        if pdf_path && !pdf_path.empty? && pdf_path.include?('/_pdfs/')
+          pdf_filename = pdf_path.split('/').last
+          pdf_filepath = File.join(PDFS_DIR, pdf_filename)
+          if File.exist?(pdf_filepath)
+            File.delete(pdf_filepath)
+            puts "[#{Time.now.strftime('%H:%M:%S')}] Deleted PDF: #{pdf_filename}"
+          end
+        end
+      end
+      
       File.delete(filepath)
+      
+      Dir.chdir(ROOT_DIR) do
+        system('bundle', 'exec', 'jekyll', 'build', '--quiet')
+      end
       
       res.status = 200
       res.body = { success: true, filename: filename }.to_json
